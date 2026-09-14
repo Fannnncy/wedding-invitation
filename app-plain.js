@@ -1,0 +1,25 @@
+// 无云版：修改这里不会影响月夜流云版。
+export default {
+  groom: '杨泞瑞',
+  bride: '周怡',
+  groomLatin: 'Wedding',
+  brideLatin: 'invitation',
+  weddingDate: '2026-10-06T00:00:00+08:00',
+  dateDot: '2026 · 10 · 06',
+  dateCn: '2026年10月6日 · 星期二',
+  calendarMonth: 'OCT',
+  calendarDay: '06',
+  calendarYear: '2026',
+  venue: '开远热带植物园 绿苑酒店户外草坪',
+  venueShort: '双地点',
+  ceremonyVenue: '开远热带植物园 绿苑酒店',
+  ceremonyNavigationUrl: '',
+  banquetVenue: '喜满都酒楼云水涧厅',
+  banquetNavigationUrl: 'https://uri.amap.com/search?keyword=%E4%BA%91%E5%8D%97%E7%9C%81%E7%BA%A2%E6%B2%B3%E5%B7%9E%E5%BC%80%E8%BF%9C%E5%B8%82%20%E5%96%9C%E6%BB%A1%E9%83%BD%E9%85%92%E6%A5%BC%E4%BA%91%E6%B0%B4%E6%B6%A7%E5%8E%85&src=wedding&callnative=1',
+  schedule: [
+    { label: '签到', time: '14:15', description: '领取今日任务，与老朋友相见' },
+    { label: '户外仪式', time: '14:30', description: '见证拥抱、誓言与交换戒指' },
+    { label: '喜宴', time: '18:00', description: '共享一场丰盛的秋日宴席' },
+    { label: '合影', time: 'Anytime', description: '保存这一份快乐存档' },
+  ],
+}

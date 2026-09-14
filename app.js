@@ -1,0 +1,359 @@
+import rsvpConfig from './rsvp-config.js'
+import cloudWeddingConfig from './app-clouds.js'
+import plainWeddingConfig from './app-plain.js'
+
+// 两个独立预览入口：?version=clouds（月夜流云）和 ?version=plain（无云）。
+const coverVersion = new URLSearchParams(window.location.search).get('version')
+document.documentElement.dataset.coverVersion = coverVersion === 'plain' ? 'plain' : 'clouds'
+
+// 静态托管部署时必须让 Vite 在构建阶段打包两份配置，不能保留运行时 import。
+const weddingConfig = coverVersion === 'plain' ? plainWeddingConfig : cloudWeddingConfig
+
+const contentValues = {
+  couple: `${weddingConfig.groom} × ${weddingConfig.bride}`,
+  coupleAmp: `${weddingConfig.groom} & ${weddingConfig.bride}`,
+  groomLatin: weddingConfig.groomLatin,
+  brideLatin: weddingConfig.brideLatin,
+  dateDot: weddingConfig.dateDot,
+  dateCn: weddingConfig.dateCn,
+  calendarMonth: weddingConfig.calendarMonth,
+  calendarDay: weddingConfig.calendarDay,
+  calendarYear: weddingConfig.calendarYear,
+  venue: weddingConfig.venue,
+  venueShort: weddingConfig.venueShort,
+  ceremonyVenue: weddingConfig.ceremonyVenue ?? weddingConfig.venue,
+  banquetVenue: weddingConfig.banquetVenue ?? weddingConfig.venue,
+  ceremonyVenueShort: weddingConfig.ceremonyVenueShort ?? weddingConfig.venueShort,
+  banquetVenueShort: weddingConfig.banquetVenueShort ?? weddingConfig.venueShort,
+}
+
+document.querySelectorAll('[data-content]').forEach((element) => {
+  const key = element.dataset.content
+  if (key in contentValues) element.textContent = contentValues[key]
+  const navigationUrl = {
+    navigationLink: weddingConfig.navigationUrl,
+    ceremonyNavigationLink: weddingConfig.ceremonyNavigationUrl ?? weddingConfig.navigationUrl,
+    banquetNavigationLink: weddingConfig.banquetNavigationUrl ?? weddingConfig.navigationUrl,
+  }[key]
+  if (navigationUrl !== undefined) {
+    if (navigationUrl) element.href = navigationUrl
+    else {
+      element.removeAttribute('href')
+      element.classList.add('is-disabled')
+      element.textContent = '待补充地址'
+    }
+  }
+})
+
+// 流云版仍保留单一婚礼地点；无云版才显示仪式与晚宴两个地点。
+if (!weddingConfig.ceremonyVenue) {
+  document.querySelector('.location-item:first-child')?.remove()
+  document.querySelector('.map-pin-ceremony')?.remove()
+  const locationLabel = document.querySelector('.location-item > b')
+  if (locationLabel) locationLabel.textContent = '婚礼地点'
+} else {
+  document.querySelector('[data-single-venue]')?.setAttribute('hidden', '')
+  document.querySelector('[data-dual-venue]')?.removeAttribute('hidden')
+}
+
+const scheduleGrid = document.querySelector('[data-content="schedule"]')
+weddingConfig.schedule.forEach((item, index) => {
+  const article = document.createElement('article')
+  article.className = 'schedule-item'
+
+  const number = document.createElement('span')
+  number.className = 'schedule-index'
+  number.textContent = String(index + 1).padStart(2, '0')
+
+  const heading = document.createElement('b')
+  heading.textContent = item.label
+  const time = document.createElement('small')
+  time.textContent = item.time
+  heading.append(time)
+
+  const description = document.createElement('p')
+  description.textContent = item.description
+  article.append(number, heading, description)
+  scheduleGrid.append(article)
+})
+
+const weddingDate = new Date(weddingConfig.weddingDate)
+const days = Math.max(0, Math.ceil((weddingDate.getTime() - Date.now()) / 86400000))
+document.querySelector('#days-count').textContent = String(days)
+
+document.querySelectorAll('[data-scroll]').forEach((button) => {
+  button.addEventListener('click', () => {
+    document.querySelector(button.dataset.scroll)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
+})
+
+if (rsvpConfig.enabled) {
+  document.querySelectorAll('[data-rsvp-ui], [data-rsvp-shortcut]').forEach((element) => {
+    element.hidden = false
+  })
+  import('./rsvp-client.js').then(({ initializeRsvp }) => initializeRsvp(rsvpConfig))
+}
+
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+const revealElements = document.querySelectorAll('.reveal')
+
+if ('IntersectionObserver' in window && !reducedMotion.matches) {
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach((entry) => {
+      if (!entry.isIntersecting) return
+      entry.target.classList.add('is-visible')
+      observer.unobserve(entry.target)
+    }),
+    { threshold: 0.12, rootMargin: '0px 0px -4% 0px' },
+  )
+  revealElements.forEach((element) => observer.observe(element))
+
+  const animationObserver = new IntersectionObserver(
+    (entries) => entries.forEach((entry) => {
+      entry.target.classList.toggle('animations-paused', !entry.isIntersecting)
+    }),
+    { rootMargin: '25% 0px' },
+  )
+  document.querySelectorAll('.hero, .story-section, .ending').forEach((region) => animationObserver.observe(region))
+} else {
+  revealElements.forEach((element) => element.classList.add('is-visible'))
+}
+
+const stars = document.querySelector('.sky-stars')
+for (let index = 0; index < 34; index += 1) {
+  const star = document.createElement('i')
+  star.style.left = `${(index * 37 + 11) % 97}%`
+  star.style.top = `${(index * 53 + 7) % 82}%`
+  star.style.setProperty('--twinkle', `${1.4 + (index % 5) * 0.35}s`)
+  star.style.animationDelay = `${-(index % 7) * 0.27}s`
+  stars.append(star)
+}
+
+document.querySelectorAll('.pixel-petals').forEach((petalField, fieldIndex) => {
+  for (let index = 0; index < 12; index += 1) {
+    const petal = document.createElement('i')
+    petal.style.left = `${5 + ((index * 19 + fieldIndex * 11) % 91)}%`
+    petal.style.setProperty('--fall', `${4.8 + (index % 4) * 0.8}s`)
+    petal.style.setProperty('--delay', `${-(index * 0.63)}s`)
+    petalField.append(petal)
+  }
+})
+
+if (!reducedMotion.matches) {
+  const heroMountains = document.querySelector('.hero-mountains')
+  let parallaxFrame
+  let lastParallaxOffset
+  const updateParallax = () => {
+    const offset = Math.min(window.scrollY * 0.055, 30)
+    if (offset !== lastParallaxOffset) {
+      heroMountains.style.setProperty('--parallax-y', `${offset}px`)
+      lastParallaxOffset = offset
+    }
+    parallaxFrame = undefined
+  }
+  window.addEventListener('scroll', () => {
+    if (!parallaxFrame) parallaxFrame = window.requestAnimationFrame(updateParallax)
+  }, { passive: true })
+}
+
+const music = document.querySelector('#wedding-music')
+const musicButton = document.querySelector('#music-toggle')
+const audioStatus = document.querySelector('#audio-status')
+let fadeFrame
+let resumeAfterVisibility = false
+let fileUnavailable = false
+let currentMusicMode
+let synthContext
+let synthMaster
+let synthTimer
+let synthStopTimer
+let noteIndex = 0
+
+const synthMelody = [261.63, 329.63, 392, 523.25, 392, 329.63, 293.66, 349.23, 440, 587.33, 440, 349.23]
+
+function setMusicState(playing) {
+  musicButton.classList.toggle('playing', playing)
+  musicButton.setAttribute('aria-pressed', String(playing))
+  musicButton.setAttribute('aria-label', playing ? '暂停背景音乐' : '播放背景音乐')
+  audioStatus.textContent = playing ? '背景音乐正在播放' : '背景音乐已暂停'
+}
+
+function fadeVolume(target, duration = 650) {
+  window.cancelAnimationFrame(fadeFrame)
+  const start = music.volume
+  const startedAt = performance.now()
+  return new Promise((resolve) => {
+    const step = (now) => {
+      const progress = Math.min(1, (now - startedAt) / duration)
+      music.volume = start + (target - start) * progress
+      if (progress < 1) fadeFrame = window.requestAnimationFrame(step)
+      else resolve()
+    }
+    fadeFrame = window.requestAnimationFrame(step)
+  })
+}
+
+function ensureSynth() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext
+  if (!AudioContextClass) throw new Error('Web Audio API is unavailable')
+  synthContext ||= new AudioContextClass()
+  if (!synthMaster) {
+    synthMaster = synthContext.createGain()
+    synthMaster.gain.value = 0.0001
+    synthMaster.connect(synthContext.destination)
+  }
+}
+
+function playSynthNote(frequency) {
+  const oscillator = synthContext.createOscillator()
+  const gain = synthContext.createGain()
+  oscillator.type = 'square'
+  oscillator.frequency.value = frequency
+  gain.gain.setValueAtTime(0.8, synthContext.currentTime)
+  gain.gain.exponentialRampToValueAtTime(0.001, synthContext.currentTime + 0.22)
+  oscillator.connect(gain).connect(synthMaster)
+  oscillator.start()
+  oscillator.stop(synthContext.currentTime + 0.23)
+}
+
+async function startSynthMusic() {
+  if (synthTimer) return
+  try {
+    ensureSynth()
+    window.clearTimeout(synthStopTimer)
+    await synthContext.resume()
+    synthMaster.gain.cancelScheduledValues(synthContext.currentTime)
+    synthMaster.gain.setValueAtTime(Math.max(0.0001, synthMaster.gain.value), synthContext.currentTime)
+    synthMaster.gain.linearRampToValueAtTime(0.2, synthContext.currentTime + 0.55)
+    playSynthNote(synthMelody[noteIndex])
+    synthTimer = window.setInterval(() => {
+      noteIndex = (noteIndex + 1) % synthMelody.length
+      playSynthNote(synthMelody[noteIndex])
+    }, 310)
+    currentMusicMode = 'synth'
+    setMusicState(true)
+    audioStatus.textContent = '未检测到背景音乐文件，正在播放合成像素旋律'
+  } catch {
+    currentMusicMode = undefined
+    setMusicState(false)
+    audioStatus.textContent = '浏览器暂未允许播放背景音乐，请检查静音设置后重试'
+  }
+}
+
+function stopSynthMusic() {
+  window.clearInterval(synthTimer)
+  synthTimer = undefined
+  if (!synthContext || !synthMaster) return
+  synthMaster.gain.cancelScheduledValues(synthContext.currentTime)
+  synthMaster.gain.setValueAtTime(Math.max(0.0001, synthMaster.gain.value), synthContext.currentTime)
+  synthMaster.gain.exponentialRampToValueAtTime(0.0001, synthContext.currentTime + 0.28)
+  synthStopTimer = window.setTimeout(() => synthContext.suspend(), 320)
+}
+
+function isMusicPlaying() {
+  return currentMusicMode === 'synth' ? Boolean(synthTimer) : currentMusicMode === 'file' && !music.paused
+}
+
+async function playMusic({ allowMutedFallback = true } = {}) {
+  if (fileUnavailable) {
+    await startSynthMusic()
+    return
+  }
+
+  try {
+    music.muted = false
+    music.volume = 0
+    await music.play()
+    currentMusicMode = 'file'
+    setMusicState(true)
+    await fadeVolume(0.2)
+  } catch (error) {
+    if (music.error || error?.name === 'NotSupportedError') {
+      fileUnavailable = true
+      await startSynthMusic()
+      return
+    }
+    // 手机浏览器通常不允许无用户操作的有声自动播放；先静音启动，
+    // 用户第一次轻触页面时会立即解除静音。
+    if (allowMutedFallback && error?.name === 'NotAllowedError') {
+      try {
+        music.muted = true
+        music.volume = 0.2
+        await music.play()
+        currentMusicMode = 'file'
+        // 静音预启动不等同于用户听到音乐，图标保持“可播放”状态。
+        setMusicState(false)
+        audioStatus.textContent = '背景音乐已启动，轻触页面即可开启声音'
+        return
+      } catch {
+        // 继续显示下方的系统拦截提示。
+      }
+    }
+    setMusicState(false)
+    audioStatus.textContent = '浏览器暂未允许播放背景音乐'
+  }
+}
+
+async function playMusicWithSound() {
+  if (currentMusicMode === 'file' && !music.paused && music.muted) {
+    music.muted = false
+    music.volume = 0
+    setMusicState(true)
+    await fadeVolume(0.2)
+    return
+  }
+  await playMusic({ allowMutedFallback: false })
+}
+
+async function pauseMusic() {
+  if (currentMusicMode === 'synth') {
+    stopSynthMusic()
+    setMusicState(false)
+    return
+  }
+  await fadeVolume(0, 320)
+  music.pause()
+  setMusicState(false)
+}
+
+music.addEventListener('canplay', () => { fileUnavailable = false }, { once: true })
+music.addEventListener('error', () => {
+  fileUnavailable = true
+  if (currentMusicMode === 'file') startSynthMusic()
+})
+musicButton.addEventListener('click', () => {
+  if (isMusicPlaying() && !music.muted) pauseMusic()
+  else playMusicWithSound()
+})
+// 自动播放受限时，首次点击或键盘操作再尝试；音乐按钮由自身处理。
+function startMusicOnInteraction(event) {
+  if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return
+  document.removeEventListener('click', startMusicOnInteraction)
+  document.removeEventListener('keydown', startMusicOnInteraction)
+  if (event.target instanceof Element && event.target.closest('#music-toggle')) return
+  if (currentMusicMode === 'file' && !music.paused && music.muted) playMusicWithSound()
+  else if (!isMusicPlaying()) playMusicWithSound()
+}
+document.addEventListener('click', startMusicOnInteraction)
+document.addEventListener('keydown', startMusicOnInteraction)
+window.setTimeout(() => { playMusic() }, 0)
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    resumeAfterVisibility = isMusicPlaying()
+    if (resumeAfterVisibility) {
+      music.pause()
+      stopSynthMusic()
+      setMusicState(false)
+    }
+  } else if (resumeAfterVisibility) {
+    resumeAfterVisibility = false
+    playMusic()
+  }
+})
+
+window.addEventListener('pagehide', () => {
+  music.pause()
+  stopSynthMusic()
+  window.cancelAnimationFrame(fadeFrame)
+})

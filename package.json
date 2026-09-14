@@ -1,0 +1,19 @@
+{
+  "name": "stardew-wedding-template",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "test": "node --test",
+    "build": "node scripts/sync-public-assets.js && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "dev:cloudflare": "npm run build && wrangler pages dev dist",
+    "setup:rsvp": "node scripts/setup-rsvp.js",
+    "deploy": "node scripts/deploy.js"
+  },
+  "devDependencies": {
+    "vite": "^7.1.1",
+    "wrangler": "^4.123.0"
+  }
+}

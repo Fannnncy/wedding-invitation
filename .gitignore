@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.idea/
+public/assets/
+*.bak
+wedding-dist-deploy.zip
+.DS_Store
+.playwright-cli/
+.wrangler/
+output/
+.env.rsvp.local
+wrangler.rsvp.jsonc
