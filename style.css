@@ -53,13 +53,13 @@ svg { shape-rendering: crispEdges; }
 .section-heading.light h2 { color: #fff1bd; text-shadow: 3px 3px #713b71; }
 
 /* Opening */
-.hero { position: relative; min-height: 100svh; padding: max(68px, 9svh) 24px 22px; overflow: hidden; isolation: isolate; color: #fff5ce; background: url('./assets/background3.png?v=2') center center / cover no-repeat; }
+.hero { position: relative; min-height: 100svh; padding: max(68px, 9svh) 24px 22px; overflow: hidden; isolation: isolate; color: #fff5ce; background: url('./assets/background3.webp?v=2') center center / cover no-repeat; }
 .hero::before { content: ''; position: absolute; z-index: 2; inset: 0; pointer-events: none; background: linear-gradient(180deg, #160b084d 0%, #160b0810 42%, #160b080a 62%, #160b0821 100%); }
 .hero::after { content: none; }
-html[data-cover-version="plain"] .hero { background-image: url('./assets/background.png'); }
+html[data-cover-version="plain"] .hero { background-image: url('./assets/background.webp'); }
 html[data-cover-version="plain"] .hero-clouds { display: none; }
 .hero-clouds { position: absolute; z-index: 1; inset: 0; overflow: hidden; pointer-events: none; opacity: .62; -webkit-mask-image: radial-gradient(circle 96px at 86% 12%, transparent 0 68px, #000 102px); mask-image: radial-gradient(circle 96px at 86% 12%, transparent 0 68px, #000 102px); }
-.hero-clouds i { position: absolute; display: block; width: 320px; height: 142px; background: url('./assets/pixel-night-cloud-sprite.png') 0 0 / 640px 427px no-repeat; image-rendering: pixelated; }
+.hero-clouds i { position: absolute; display: block; width: 320px; height: 142px; background: url('./assets/pixel-night-cloud-sprite.webp') 0 0 / 640px 427px no-repeat; image-rendering: pixelated; }
 .hero-clouds i:nth-child(1) { top: -3%; left: -320px; background-position: 0 0; animation: cloudFlow 100s linear infinite; }
 .hero-clouds i:nth-child(2) { top: 12%; left: -320px; opacity: .72; background-position: -320px 0; animation: cloudFlow 124s linear -44s infinite; }
 .hero-clouds i:nth-child(3) { top: 26%; left: -320px; opacity: .6; background-position: 0 -142px; animation: cloudFlow 110s linear -74s infinite; }
